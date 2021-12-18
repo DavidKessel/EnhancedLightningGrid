@@ -49,6 +49,13 @@ public with sharing class sdgController {
             //Blank out the internal data to save payload:
             newSDG.InternalData = null;
 
+            //ADDED - check environment context
+            Boolean isCommunity = false;
+            if (Site.getSiteId() != null) {
+                isCommunity = true;
+            }
+            initial.isCommunity = isCommunity;
+
             //build response object:
             initial.SDGObject = newSDG;
             initial.results = result;
@@ -91,5 +98,16 @@ public with sharing class sdgController {
             results.isError = true;
         }
         return JSON.serialize(results);
+    }
+
+    /* Gets the Object ID from the page where component is rendered */
+    @AuraEnabled
+    public static string getPageObjectId(String jsonrequest) {
+        
+        String sobjectName = (String)JSON.deserializeUntyped(jsonrequest);
+        Map<String, Schema.SObjectType> globalDescribe = Schema.getGlobalDescribe();
+        String objId = '';
+        objId = globalDescribe.get(sobjectName).getDescribe().getKeyPrefix();
+        return JSON.serialize(objId);
     }
 }

@@ -15,28 +15,34 @@
                 // Show error message
             }
     },
+
+    // method was modified as part of commit SHA 4fc6cd //
     renderHyperLinktoObject: function (component, datachunk, datachunkid) {
+        var isCommunity = component.get("v.IsCommunity");
+        
         try {
-            //if (datachunkid != null) {
-            //if (datachunk != null) {
             if (typeof datachunkid === 'string' && typeof datachunk === 'string') {
-                if (datachunkid != null && datachunk != null) {
-                    if (datachunkid != '' && datachunk != '') {
+                if (datachunkid && datachunk) {
+
+                    if (isCommunity == true) {
+ 
+                        let url = this.buildCommunityUrl(component, datachunkid);
                         
-                        this.CreateCmp(component,
-                                       "lightning:formattedUrl",
-                                       {
+                        this.CreateCmp(component, "lightning:formattedUrl", {
+                            value: url,
+                            label: datachunk,
+                        });
+                    }
+                    else if(isCommunity == false) {
+
+                        this.CreateCmp(component, "lightning:formattedUrl", {
                                            onclick : component.getReference("c.NavigateToObj"),
                                            value : '/' + datachunkid,
                                            label: datachunk
-                                       }
-                                       
-                                      );
+                        });
                     }
                 }
             }
-            //}
-            //}
         }
         catch (linkex) {
             console.log('error rendering hyperlinktoobject');
@@ -167,4 +173,18 @@
             );
         }
     },
+    buildCommunityUrl: function (component, datachunkid) {
+
+        let URL = component.get("v.URL");
+        let objectName = component.get("v.SDG").sObjectName;
+        let path = encodeURI(URL.override || objectName
+            .replace(/_{2}[cr]$|[\W_]/g, '')
+            .toLowerCase()
+        );
+        
+        if (URL.override) {
+            return `${URL.base}${path}?recordid=${datachunkid}`;
+        } 
+        return `${URL.base}${path}/${datachunkid}`;
+    }
 })

@@ -120,6 +120,7 @@ public class sdgMapper {
                     if (newfield!=null)
                     {
                         newfield.Scale = dr.getScale();
+                        newfield.renderHyperlink = field.render_hyperlink__c;
                         newfields.add(newfield);
                     }
                 }

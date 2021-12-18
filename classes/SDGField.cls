@@ -19,6 +19,8 @@ global Boolean canFilter = false;
 global List<AuraSelectOption> options = new List<AuraSelectOption>();
 global integer FieldOrder;
 global integer scale;
+// Added for rendering custom links in Community pages.
+global Boolean renderHyperlink;
 
 public sdgField()
 {

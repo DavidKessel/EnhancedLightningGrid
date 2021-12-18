@@ -10,4 +10,5 @@ public with sharing class sdgInitialLoad
         public SDG SDGObject;
         public Boolean isError;
         public String ErrorMessage;
+        public Boolean isCommunity;
     }

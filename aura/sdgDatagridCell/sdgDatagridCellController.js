@@ -5,6 +5,8 @@
             var field = component.get("v.renderfield");
             var fieldtype = field.FieldType;
             var fieldstyle = field.FieldStyle;
+            var fieldIsLinkable = field.renderHyperlink;
+
             if (!field) {
                 helper.CreateCmp(
                     "ui:outputText",
@@ -30,11 +32,11 @@
                 else {
                     switch (fieldtype) {
                         case "STRING":
-                            if (field.FieldName.toLowerCase() == 'name') {
+                            if (fieldIsLinkable) {
                                 helper.renderHyperLinktoObject(component, datachunk, datachunkid);
                             }
                             else {
-                                helper.renderText(component, datachunk);
+                                helper.renderText(component, datachunk)
                             }
                             break;
                         case "COMBOBOX":
@@ -263,5 +265,12 @@
             "url": url
         });
         navEvt.fire();
+    },
+    HandleURLClick: function (component, event, helper) {
+        var field = component.get("v.renderfield");
+        var fieldtype = field.FieldType;
+        if (field.FieldName.toLowerCase() == 'name') {
+            this.NavigateToObj(component, event, helper);
+        }
     }
 })
