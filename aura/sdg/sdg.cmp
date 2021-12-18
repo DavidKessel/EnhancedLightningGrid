@@ -1,6 +1,15 @@
 <aura:component implements="flexipage:availableForAllPageTypes,forceCommunity:availableForAllPageTypes,force:hasRecordId,force:appHostable"
     controller="sdgController" access="global" extends="c:sdgBase">
 
+    <!-- added this for launching flows -->
+    <lightning:flow aura:id="flowData" onstatuschange="{!c.statusChange}"/>
+    <aura:attribute type="Boolean" name="ismodalClicked"/>
+    <aura:attribute type="String" name="flowName" default=""/>
+    <aura:attribute type="String" name="isScreenFlow" />
+    <aura:attribute type="String" name="PageObjectId" default=""/>
+    <aura:attribute type="Object" name="payload" />
+    <aura:handler name="flowEvent" event="c:lightningFlowEvent" action="{!c.handleComponentEvent}"/>
+
     <aura:attribute name="recordId" type="String" access="global" />
 
     <aura:attribute name="SDGFields" type="List" access="global" />
@@ -36,6 +45,10 @@
     <aura:attribute name="isLoaded" type="Boolean" default="false" access="global" />
     <aura:attribute name="ShowDebug" type="Boolean" default="false" access="global" />
 
+    <!-- Added for error in navigating on Community as part of commit SHA 551d44b -->
+    <aura:attribute name="IsCommunity" type="Boolean" default="false" access="global" />
+    <aura:attribute name="URL" type="Object" access="global" />
+
     <aura:attribute name="hasSummary" type="Boolean" default="false" />
     <aura:attribute name="summarydata" type="List" access="global" />
 
@@ -58,6 +71,7 @@
     <aura:attribute name="SDGTag" type="string" access="global" />
     <aura:attribute name="DefaultPageSize" type="String" access="global" />
     <aura:attribute name="PagerSizeValue" default="{!v.DefaultPageSize}" type="String" access="global" />
+    <aura:attribute name="URLOverride" type="String" default="" access="global" />
 
     <aura:attribute name="PreventResponsiveness" type="Boolean" default="false" access="global" />
 
@@ -234,9 +248,8 @@
                                                     </aura:if>
 
                                                     <aura:iteration items="{!row.data}" var="renderfield" indexVar="index">
-
-                                                        <c:sdgDatagridCell renderfield="{!renderfield}" />
-
+                                                        <!-- added isCommunity property as part of commit SHA 551d44b -->
+                                                        <c:sdgDatagridCell renderfield="{!renderfield}" IsCommunity="{!v.IsCommunity}" URL="{!v.URL}" SDG="{!v.SDG}"/>
 
                                                     </aura:iteration>
 
@@ -338,6 +351,26 @@
                 <p>{!item}</p>
             </aura:iteration>
         </div>
+    </aura:if>
+
+    <!-- modal for launching Flow -->
+    <aura:if isTrue="{!v.ismodalClicked}">
+        <div role="dialog" tabindex="-1" aria-labelledby="header43" aura:id="Modalbox" class="slds-modal">
+            <div class="slds-modal__container">
+                <div class="slds-modal__header"></div>
+                <div class="slds-modal__content slds-p-around--medium">
+                <div>
+                    <c:LightningFlow aura:id="child" />
+                </div>
+            </div>
+            <div class="slds-modal__footer">
+            </div>
+            </div>
+        </div>
+    </aura:if>
+
+    <aura:if isTrue="{!v.ismodalClicked}">
+        <div class="slds-backdrop " aura:id="Modalbackdrop"></div>
     </aura:if>
 
 </aura:component>

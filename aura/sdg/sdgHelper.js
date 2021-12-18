@@ -97,6 +97,9 @@
                             component.set("v.SDGActions", results.SDGObject.SDGActions);
                             for (var i = 0; i < listsize; i++) {
                                 var actiontype = results.SDGObject.SDGActions[i].Type;
+                                //added for flow
+                                let payload = results.SDGObject.SDGActions[i].Payload;
+                                let event = results.SDGObject.SDGActions[i].Event;
 
                                 if (actiontype == 'List')
                                     hasListMenu = true;
@@ -107,6 +110,13 @@
                                 if (actiontype == 'Row') {
                                     hasRowMenu = true;
                                     hasRowActions = true;
+                                }
+                                //getting the flow name
+                                if (payload && event == 'c.force:Flow') {
+                                    let payloadobj = JSON.parse(payload);
+                                    let flowName = payloadobj.flowApiName
+                                    component.set("v.flowName", flowName)
+                                    component.set("v.flowInput", payloadobj.input);
                                 }
                             }
                             component.set("v.hasRowMenu", hasRowMenu);
@@ -119,6 +129,12 @@
                         component.set("v.isLoaded", true);
                         thishelper.handleResults(component, results.Results);
 
+                        // Checks if the component is launched in SF communities. 
+                        // If so, we will change the URLs and fetch the sObject ID.
+                        component.set("v.IsCommunity", results.isCommunity);
+                        if (results.isCommunity) {
+                            thishelper.getPageObjectId(component);
+                        }
                     }
                 }
                 else {
@@ -164,7 +180,7 @@
     },
 
     handleResults: function (component, resultsobj) {
-
+        
         if (resultsobj.isError) {
 
             component.set("v.ShowSDGError", true);
@@ -237,7 +253,7 @@
                             datachunkid = null;
                         }
                     }
-
+                
                     row.push(
                         {
                             "Path": field.ColumnName,
@@ -249,7 +265,8 @@
                             "datachunk": datachunk,
                             "datachunkid": datachunkid,
                             "isHTMLFormatted": field.isHTMLFormatted,
-                            "scale": field.scale
+                            "scale": field.scale,
+                            "renderHyperlink": field.renderHyperlink
                         });
 
                 }
@@ -411,6 +428,10 @@
             var idlist = component.get("v.CheckedRowIDs");
             payload = payload.replace(/#Ids#/gi, idlist.join());
 
+            payload = payload.replace(/#PageObjectId#/gi, () => {
+                return component.get("v.PageObjectId");
+            });
+    
             if (datarow) {
                 payload = payload.replace(/#Id#/gi, datarow.rowID);
             }
@@ -439,6 +460,14 @@
             }
 
             var payloadobj = JSON.parse(payload);
+            
+            // opens the modal for flows on community pages
+            if (evt.Event == 'c.force:Flow') {
+                this.openModal(component);
+                let childComponent = component.find('child');
+                childComponent.startFlow(payloadobj);
+            }
+            
             var internalevent = component.get("v.internalEvent");
             if (evt.Event != internalevent) {
                 var navEvt = $A.get(evt.Event);
@@ -475,6 +504,59 @@
 
         this.FireEvent(component, actionid, selectedrow);
 
+    },
+
+    getContext: function (component) {
+
+        var helper = this;
+        try {
+            this.callMethod(component, "c.contextIsCommunity", {}, { isStorable: true, isAbortable: true },
+
+                function (results) {
+                    if (results != null) {
+                        component.set("v.IsCommunity", results);
+                    }
+                }
+            );
+        } catch (ex) {
+            helper.AddToLog(component, 'Error setting context environment:');
+        }
+    },
+
+    getURL: function (component) {
+        let url = window.location.href;
+        let baseURL = url.substring(0, url.lastIndexOf("/s/"));
+        let URLOverride = component.get("v.URLOverride");
+
+        let URL = {
+            "override": URLOverride,
+            "base": baseURL + "/s/"
+        };
+
+        component.set("v.URL", URL);
+    },
+    openModal: function (component) {	
+        component.set('v.ismodalClicked', true);
+        var cmpTarget = component.find('Modalbox');
+        var cmpBack = component.find('Modalbackdrop');
+        $A.util.addClass(cmpTarget, 'slds-fade-in-open');
+        $A.util.addClass(cmpBack, 'slds-backdrop--open');
+    },
+    closeModal: function (component) {
+        component.set('v.ismodalClicked', false);
+        var cmpTarget = component.find('Modalbox');
+        var cmpBack = component.find('Modalbackdrop');
+        $A.util.removeClass(cmpBack,'slds-backdrop--open');
+        $A.util.removeClass(cmpTarget, 'slds-fade-in-open');
+    },
+    getPageObjectId: function(component) {
+        let url = window.location.href
+        let matches = url.match(/([a-zA-Z0-9]{15,18})/);
+        let objId = ''
+        if (matches.length >= 1) {
+            objId = matches[0];
+        }
+        component.set("v.PageObjectId", objId);
     }
 
 })

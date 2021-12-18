@@ -1,5 +1,6 @@
 ({
     doInit: function (component, event, helper) {
+        
         var TargetSize = component.get("v.width");
         var DisableResponsive = component.get("v.PreventResponsiveness");
 
@@ -31,6 +32,7 @@
 
         helper.getSDG(component);
         helper.getNamespace(component);
+        helper.getURL(component);
     },
     handleObjectManagerEvent: function (component, event, helper) {
         alert('caught in sdg');
@@ -50,10 +52,9 @@
         navEvt.fire();
     },
     reload: function (component, event, helper) {
-        component.set('v.CheckedRowIDs',[]);
         component.set('v.reloadseed', Date.now());
         helper.getResponseData(component);
-        
+
     },
     filterUpdated: function (component, event, helper) {
         component.set("v.ShowSDGError", false);
@@ -149,6 +150,7 @@
     CheckAll: function (component, event, helper) {
 
         //var idlist = component.get("v.CheckedRowIDs");
+
         var idlist = [];
         var checkboxes = component.find('checkrow');
         var checkboxeslength = checkboxes.length;
@@ -207,6 +209,17 @@
     RaiseRowEventButton: function (component, event, helper) {
         var valuesString = event.getSource().get("v.value");
         helper.RaiseRowEvent(component, helper, valuesString);
-    }
-
+    },
+    /* handles lightningFlowEvent and closes modal after finish*/
+    handleComponentEvent : function(component, event, helper) {
+        let msg = event.getParam('message');
+        if (msg == 'Error') {
+            helper.showtoast(
+                'Warnung', 
+                'Etwas ist falsch gelaufen.', 
+                component
+            );
+        }
+        helper.closeModal(component);
+    },
 })
